@@ -4,6 +4,8 @@ import { DesktopSidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
 import { verifyToken } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 async function getUser() {
   const token = cookies().get("auth_token")?.value;
   if (!token) return null;

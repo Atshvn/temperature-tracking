@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
-    removeAuthCookie();
+    await removeAuthCookie();
 
     // Redirect to login page
     return NextResponse.redirect(new URL("/login", request.url));

@@ -69,8 +69,9 @@ export async function verifyToken(token: string): Promise<UserPayload | null> {
 /**
  * Set authentication cookie
  */
-export function setAuthCookie(token: string): void {
-  cookies().set(COOKIE_NAME, token, {
+export async function setAuthCookie(token: string): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -82,22 +83,24 @@ export function setAuthCookie(token: string): void {
 /**
  * Get authentication cookie
  */
-export function getAuthCookie(): string | undefined {
-  return cookies().get(COOKIE_NAME)?.value;
+export async function getAuthCookie(): Promise<string | undefined> {
+  const cookieStore = await cookies();
+  return cookieStore.get(COOKIE_NAME)?.value;
 }
 
 /**
  * Remove authentication cookie
  */
-export function removeAuthCookie(): void {
-  cookies().delete(COOKIE_NAME);
+export async function removeAuthCookie(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.delete(COOKIE_NAME);
 }
 
 /**
  * Get current user from cookie
  */
 export async function getCurrentUser(): Promise<UserPayload | null> {
-  const token = getAuthCookie();
+  const token = await getAuthCookie();
   if (!token) return null;
   return verifyToken(token);
 }

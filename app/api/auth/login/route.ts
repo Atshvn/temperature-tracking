@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Set cookie
-    setAuthCookie(token);
+    await setAuthCookie(token);
 
     return NextResponse.json({
       success: true,

@@ -8,6 +8,8 @@ import { prisma } from "@/lib/db";
 import { verifyPassword, createToken, setAuthCookie } from "@/lib/auth";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 // Request schema
 const loginSchema = z.object({
   identifier: z.string().min(1, "Vui lòng nhập tên đăng nhập hoặc email"),

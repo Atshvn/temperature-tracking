@@ -1,4 +1,4 @@
-# 3STracking - Vehicle Temperature Report System
+# Vehicle Temperature Report System
 
 ## Tech Stack
 

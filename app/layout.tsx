@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { Suspense } from "react";
+import { NavigationProgress } from "@/components/navigation-progress";
 
 const inter = Inter({ subsets: ["latin", "vietnamese"] });
 
@@ -25,6 +27,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <Suspense fallback={null}>
+            <NavigationProgress />
+          </Suspense>
           {children}
           <Toaster position="top-right" richColors />
         </ThemeProvider>

@@ -10,6 +10,8 @@ import { prisma } from "@/lib/db";
 import { authMiddleware, isAdmin } from "@/lib/auth";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 // Update user schema
 const updateUserSchema = z.object({
   name: z.string().min(2, "Tên phải có ít nhất 2 ký tự").optional(),

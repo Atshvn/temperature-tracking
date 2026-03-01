@@ -8,6 +8,8 @@ import { prisma } from "@/lib/db";
 import { hashPassword, authMiddleware, isAdmin } from "@/lib/auth";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 // Reset password schema
 const resetPasswordSchema = z.object({
   password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),

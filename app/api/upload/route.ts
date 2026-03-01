@@ -8,6 +8,8 @@ import { prisma } from "@/lib/db";
 import { authMiddleware, isAdmin } from "@/lib/auth";
 import { parseExcelFile, convertToDbRecords } from "@/lib/excel";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   try {
     const user = await authMiddleware(request);

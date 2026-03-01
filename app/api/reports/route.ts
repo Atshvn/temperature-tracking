@@ -8,6 +8,8 @@ import { prisma } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth";
 import { Prisma } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const user = await authMiddleware(request);

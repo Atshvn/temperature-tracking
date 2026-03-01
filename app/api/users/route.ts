@@ -9,6 +9,8 @@ import { prisma } from "@/lib/db";
 import { hashPassword, authMiddleware, isAdmin } from "@/lib/auth";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 // Create user schema
 const createUserSchema = z.object({
   username: z.string().min(3, "Username phải có ít nhất 3 ký tự"),

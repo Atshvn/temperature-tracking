@@ -28,6 +28,7 @@ import { Loader2 } from "lucide-react";
 // User type
 export interface User {
   id: string;
+  username: string;
   name: string;
   email: string;
   role: "ADMIN" | "USER";
@@ -36,6 +37,7 @@ export interface User {
 
 // Form schema for creating user
 const createUserSchema = z.object({
+  username: z.string().min(3, "Username phải có ít nhất 3 ký tự"),
   name: z.string().min(2, "Tên phải có ít nhất 2 ký tự"),
   email: z.string().email("Email không hợp lệ"),
   password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
@@ -127,6 +129,19 @@ export function CreateUserDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="username">Tên đăng nhập</Label>
+            <Input
+              id="username"
+              {...register("username")}
+              placeholder="username"
+              disabled={isLoading}
+            />
+            {errors.username && (
+              <p className="text-sm text-destructive">{errors.username.message}</p>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="name">Họ tên</Label>
             <Input

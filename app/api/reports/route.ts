@@ -36,14 +36,14 @@ export async function GET(request: NextRequest) {
     }
 
     if (dateFrom || dateTo) {
-      where.recordedAt = {};
+      where.startTime = {};
       if (dateFrom) {
-        where.recordedAt.gte = new Date(dateFrom);
+        where.startTime.gte = new Date(dateFrom);
       }
       if (dateTo) {
         const endDate = new Date(dateTo);
         endDate.setHours(23, 59, 59, 999);
-        where.recordedAt.lte = endDate;
+        where.startTime.lte = endDate;
       }
     }
 
@@ -57,14 +57,16 @@ export async function GET(request: NextRequest) {
     // Get records
     const records = await prisma.vehicleTemperature.findMany({
       where,
-      orderBy: { recordedAt: "desc" },
+      orderBy: { startTime: "desc" },
       skip: (page - 1) * limit,
       take: limit,
       select: {
         id: true,
         vehiclePlate: true,
-        temperature: true,
-        recordedAt: true,
+        freezerTemp: true,
+        coolerTemp: true,
+        startTime: true,
+        endTime: true,
         status: true,
         createdAt: true,
       },

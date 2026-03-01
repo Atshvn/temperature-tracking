@@ -11,6 +11,7 @@ import { z } from "zod";
 
 // Create user schema
 const createUserSchema = z.object({
+  username: z.string().min(3, "Username phải có ít nhất 3 ký tự"),
   name: z.string().min(2, "Tên phải có ít nhất 2 ký tự"),
   email: z.string().email("Email không hợp lệ"),
   password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
@@ -36,6 +37,7 @@ export async function GET(request: NextRequest) {
     const users = await prisma.user.findMany({
       select: {
         id: true,
+        username: true,
         name: true,
         email: true,
         role: true,
@@ -81,7 +83,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, email, password, role } = validationResult.data;
+    const { username, name, email, password, role } = validationResult.data;
+
+    // Check if username exists
+    const existingUsername = await prisma.user.findUnique({
+      where: { username },
+    });
+
+    if (existingUsername) {
+      return NextResponse.json(
+        { error: "Username đã được sử dụng" },
+        { status: 400 },
+      );
+    }
 
     // Check if email exists
     const existingUser = await prisma.user.findUnique({
@@ -101,6 +115,7 @@ export async function POST(request: NextRequest) {
     // Create user
     const newUser = await prisma.user.create({
       data: {
+        username,
         name,
         email,
         password: hashedPassword,
@@ -108,6 +123,7 @@ export async function POST(request: NextRequest) {
       },
       select: {
         id: true,
+        username: true,
         name: true,
         email: true,
         role: true,

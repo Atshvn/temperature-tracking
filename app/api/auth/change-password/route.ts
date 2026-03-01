@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import { verifyToken } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/db";
 
 export async function POST(request: Request) {
   try {
@@ -38,8 +38,8 @@ export async function POST(request: Request) {
     }
 
     // Get user from database
-    const user = await db.user.findUnique({
-      where: { id: payload.userId as string },
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
     });
 
     if (!user) {
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Update password
-    await db.user.update({
+    await prisma.user.update({
       where: { id: user.id },
       data: { password: hashedPassword },
     });

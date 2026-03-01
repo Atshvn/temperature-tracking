@@ -12,32 +12,34 @@ async function main() {
   console.log("🌱 Starting database seed...");
 
   // Create admin user
-  const adminPassword = await bcrypt.hash("admin123", 12);
+  const adminPassword = await bcrypt.hash("admin3s@123", 12);
   const admin = await prisma.user.upsert({
-    where: { email: "admin@example.com" },
+    where: { email: "admin3s@gmail.com" },
     update: {},
     create: {
+      username: "admin3s",
       name: "Administrator",
-      email: "admin@example.com",
+      email: "admin3s@gmail.com",
       password: adminPassword,
       role: Role.ADMIN,
     },
   });
-  console.log("✅ Admin user created:", admin.email);
+  console.log("✅ Admin user created:", admin.username);
 
   // Create demo user
-  const userPassword = await bcrypt.hash("user123", 12);
+  const userPassword = await bcrypt.hash("3scooltrans@12345", 12);
   const user = await prisma.user.upsert({
-    where: { email: "user@example.com" },
+    where: { email: "3scooltrans@gmail.com" },
     update: {},
     create: {
-      name: "Demo User",
-      email: "user@example.com",
+      username: "3scooltrans",
+      name: "3scooltrans",
+      email: "3scooltrans@gmail.com",
       password: userPassword,
       role: Role.USER,
     },
   });
-  console.log("✅ Demo user created:", user.email);
+  console.log("✅ Demo user created:", user.username);
 
   // Create sample vehicles
   const vehiclesData = [
@@ -206,15 +208,15 @@ async function main() {
     }
   }
 
-  await prisma.vehicleTemperature.createMany({
-    data: temperatureRecords,
-  });
+  // await prisma.vehicleTemperature.createMany({
+  //   data: temperatureRecords,
+  // });
   console.log(`✅ ${temperatureRecords.length} temperature records created`);
 
   console.log("\n🎉 Database seeded successfully!");
   console.log("\n📋 Default accounts:");
-  console.log("   Admin: admin@example.com / admin123");
-  console.log("   User:  user@example.com / user123");
+  console.log("   Admin: admin3s / admin3s@123");
+  console.log("   User:  3scooltrans / 3scooltrans@12345");
   console.log("\n🚛 Sample vehicles:");
   createdVehicles.forEach((v) => {
     console.log(`   ${v.licensePlate} - ${v.brandName} - ${v.vehicleType}`);

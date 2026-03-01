@@ -10,7 +10,7 @@ import { z } from "zod";
 
 // Request schema
 const loginSchema = z.object({
-  email: z.string().email("Email không hợp lệ"),
+  identifier: z.string().min(1, "Vui lòng nhập tên đăng nhập hoặc email"),
   password: z.string().min(1, "Vui lòng nhập mật khẩu"),
 });
 
@@ -27,16 +27,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password } = validationResult.data;
+    const { identifier, password } = validationResult.data;
 
-    // Find user
-    const user = await prisma.user.findUnique({
-      where: { email },
+    // Find user by email or username
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [{ email: identifier }, { username: identifier }],
+      },
     });
 
     if (!user) {
       return NextResponse.json(
-        { error: "Email hoặc mật khẩu không đúng" },
+        { error: "Tên đăng nhập hoặc mật khẩu không đúng" },
         { status: 401 },
       );
     }
@@ -45,7 +47,7 @@ export async function POST(request: NextRequest) {
     const isValid = await verifyPassword(password, user.password);
     if (!isValid) {
       return NextResponse.json(
-        { error: "Email hoặc mật khẩu không đúng" },
+        { error: "Tên đăng nhập hoặc mật khẩu không đúng" },
         { status: 401 },
       );
     }

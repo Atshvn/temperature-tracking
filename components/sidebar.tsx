@@ -255,25 +255,23 @@ const menuItems: MenuItem[] = [
         title: "Upload Excel",
         href: "/temperature/upload",
         icon: Upload,
-        userAllowed: true,
+        adminOnly: true,
         implemented: true,
       },
       {
         title: "Trạng thái điều hoà",
         href: "/temperature/ac-status",
         icon: AirVent,
-        userAllowed: true,
         implemented: true,
       },
       {
         title: "Nhiệt độ 1 cảm biến",
         href: "/temperature/single-sensor",
         icon: Thermometer,
-        userAllowed: true,
         implemented: true,
       },
       {
-        title: "Nhiệt độ thùng lạnh / kho lạnh",
+        title: "Nhiệt độ kho lạnh",
         href: "/temperature/cold-storage",
         icon: Snowflake,
         userAllowed: true,
@@ -439,14 +437,11 @@ function isItemAccessible(item: MenuItem, isAdmin: boolean): boolean {
 }
 
 // Helper function to check if item should be shown in menu
+// Shows all items for both admin and user, except adminOnly items are hidden from users
 function shouldShowItem(item: MenuItem, isAdmin: boolean): boolean {
-  if (isAdmin) return true;
-  // For regular users, only show if userAllowed or has children with userAllowed
-  if (item.userAllowed) return true;
-  if (item.children) {
-    return item.children.some((child) => child.userAllowed === true);
-  }
-  return false;
+  // Hide adminOnly items from regular users
+  if (!isAdmin && item.adminOnly) return false;
+  return true;
 }
 
 function CollapsibleMenuItem({
@@ -491,16 +486,22 @@ function CollapsibleMenuItem({
     return "/under-construction";
   };
 
-  // Check if item shows warning icon (not implemented for admin, no permission for user)
+  // Check if item shows warning icon (not implemented)
   const showWarningIcon = (menuItem: MenuItem): boolean => {
-    if (isAdmin) return !menuItem.implemented;
-    return !menuItem.userAllowed || !menuItem.implemented;
+    return !menuItem.implemented;
+  };
+
+  // Check if item is restricted for user (no permission)
+  const isRestricted = (menuItem: MenuItem): boolean => {
+    if (isAdmin) return false;
+    return !menuItem.userAllowed;
   };
 
   // If no children, render as simple link
   if (!item.children) {
     const isActive = pathname === item.href;
     const showWarning = showWarningIcon(item);
+    const restricted = isRestricted(item);
     return (
       <Link
         href={getItemHref(item)}
@@ -510,12 +511,13 @@ function CollapsibleMenuItem({
           isActive
             ? "bg-primary text-primary-foreground hover:bg-primary/90"
             : "text-muted-foreground hover:text-foreground",
-          showWarning && "opacity-60",
+          (showWarning || restricted) && "opacity-60",
         )}
       >
         <item.icon className="h-4 w-4 shrink-0" />
         <span className="truncate">{item.title}</span>
-        {showWarning && (
+        {restricted && <Shield className="h-3 w-3 ml-auto text-red-500" />}
+        {!restricted && showWarning && (
           <Construction className="h-3 w-3 ml-auto text-yellow-500" />
         )}
       </Link>
@@ -529,6 +531,9 @@ function CollapsibleMenuItem({
 
   if (visibleChildren.length === 0) return null;
 
+  // Check if parent menu group is restricted (adminOnly)
+  const parentRestricted = !isAdmin && item.adminOnly;
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <CollapsibleTrigger
@@ -537,6 +542,7 @@ function CollapsibleMenuItem({
           hasActiveChild
             ? "text-primary"
             : "text-muted-foreground hover:text-foreground",
+          parentRestricted && "opacity-60",
         )}
       >
         <item.icon className="h-4 w-4 shrink-0" />
@@ -552,6 +558,7 @@ function CollapsibleMenuItem({
         {visibleChildren.map((child) => {
           const isActive = pathname === child.href;
           const showWarning = showWarningIcon(child);
+          const restricted = isRestricted(child);
           return (
             <Link
               key={child.href}
@@ -562,12 +569,15 @@ function CollapsibleMenuItem({
                 isActive
                   ? "bg-primary text-primary-foreground hover:bg-primary/90"
                   : "text-muted-foreground hover:text-foreground",
-                showWarning && "opacity-60",
+                (showWarning || restricted) && "opacity-60",
               )}
             >
               <child.icon className="h-4 w-4 shrink-0" />
               <span className="truncate">{child.title}</span>
-              {showWarning && (
+              {restricted && (
+                <Shield className="h-3 w-3 ml-auto text-red-500" />
+              )}
+              {!restricted && showWarning && (
                 <Construction className="h-3 w-3 ml-auto text-yellow-500" />
               )}
             </Link>

@@ -23,7 +23,7 @@ export default function NoPermissionPage() {
             Vui lòng liên hệ quản trị viên nếu bạn cần quyền truy cập.
           </p>
           <Button asChild className="mt-4">
-            <Link href="/dashboard">Quay về Dashboard</Link>
+            <Link href="/">Quay về Dashboard</Link>
           </Button>
         </CardContent>
       </Card>

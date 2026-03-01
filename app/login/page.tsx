@@ -20,7 +20,7 @@ import { MapPin, Loader2 } from "lucide-react";
 
 // Login form schema
 const loginSchema = z.object({
-  email: z.string().email("Email không hợp lệ"),
+  identifier: z.string().min(1, "Vui lòng nhập tên đăng nhập hoặc email"),
   password: z.string().min(1, "Vui lòng nhập mật khẩu"),
 });
 
@@ -86,17 +86,17 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="identifier">Tên đăng nhập hoặc Email</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="admin@example.com"
-                {...register("email")}
+                id="identifier"
+                type="text"
+                placeholder=""
+                {...register("identifier")}
                 disabled={isLoading}
               />
-              {errors.email && (
+              {errors.identifier && (
                 <p className="text-sm text-destructive">
-                  {errors.email.message}
+                  {errors.identifier.message}
                 </p>
               )}
             </div>
@@ -106,7 +106,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••"
+                placeholder=""
                 {...register("password")}
                 disabled={isLoading}
               />
@@ -122,19 +122,6 @@ export default function LoginPage() {
               Đăng nhập
             </Button>
           </form>
-
-          {/* Demo credentials */}
-          <div className="mt-6 p-4 bg-muted rounded-lg">
-            <p className="text-sm font-medium mb-2">Demo accounts:</p>
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p>
-                <strong>Admin:</strong> admin@example.com / admin123
-              </p>
-              <p>
-                <strong>User:</strong> user@example.com / user123
-              </p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

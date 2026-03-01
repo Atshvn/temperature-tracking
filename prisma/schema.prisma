@@ -1,0 +1,120 @@
+// Prisma Schema - Vehicle Temperature Report System
+// PostgreSQL database with User, VehicleTemperature, and UploadLog tables
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model - for authentication and authorization
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String // Hashed password
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  uploadLogs UploadLog[]
+
+  @@map("users")
+}
+
+// Role enum for user permissions
+enum Role {
+  ADMIN
+  USER
+}
+
+// VehicleTemperature model - stores temperature records
+model VehicleTemperature {
+  id              String            @id @default(cuid())
+  vehiclePlate    String // Vehicle license plate
+  startTime       DateTime // Bắt đầu
+  endTime         DateTime // Kết thúc
+  duration        Float             @default(0) // Thời gian (phút)
+  acStatus        String            @default("Tắt") // Điều hòa: Tắt/Bật
+  freezerTemp     Float? // Ngăn Đông - nhiệt độ
+  freezerHumidity Float? // Ngăn Đông - Độ ẩm
+  coolerTemp      Float? // Ngăn Mát - nhiệt độ
+  coolerHumidity  Float? // Ngăn Mát - Độ ẩm
+  coordinates     String? // GPS coordinates
+  location        String? // Địa chỉ
+  status          TemperatureStatus @default(NORMAL)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  // Relations
+  vehicleId   String?
+  vehicle     Vehicle?   @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  uploadLogId String?
+  uploadLog   UploadLog? @relation(fields: [uploadLogId], references: [id], onDelete: SetNull)
+
+  @@index([vehiclePlate])
+  @@index([startTime])
+  @@index([vehicleId])
+  @@index([status])
+  @@map("vehicle_temperatures")
+}
+
+// Temperature status enum
+enum TemperatureStatus {
+  NORMAL // Temperature within normal range
+  WARNING // Temperature exceeds threshold
+}
+
+// UploadLog model - tracks file uploads
+model UploadLog {
+  id           String   @id @default(cuid())
+  fileName     String
+  recordsCount Int      @default(0) // Number of records in the file
+  uploadedAt   DateTime @default(now())
+
+  // Relations
+  uploadedById String
+  uploadedBy   User   @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  temperatures VehicleTemperature[]
+
+  @@map("upload_logs")
+}
+
+// Vehicle model - stores vehicle information
+model Vehicle {
+  id                String   @id @default(cuid())
+  licensePlate      String   @unique // Biển số
+  registrationName  String // Tên đăng ký
+  registrationYear  Int // Năm đăng ký
+  brandName         String // Tên hãng xe
+  vehicleType       String // Loại phương tiện
+  color             String // Màu sắc
+  chassisNumber     String? // Số khung
+  engineNumber      String? // Số máy
+  manufacturingYear Int // Năm sản xuất
+  usageExpiry       Int // Niên hạn sử dụng
+  countryOfOrigin   String   @default("Việt Nam") // Nước sản xuất
+  fuelType          String   @default("Dầu") // Nhiên liệu
+  fuelConsumption   Float? // Định mức (lít/100km)
+  loadCapacity      Float? // Tải trọng
+  volume            Int? // Dung tích
+  odometerKm        Int      @default(0) // KM Đồng hồ
+  gpsKm             Int      @default(0) // KM GPS
+  followingLaw      String? // Luật theo
+  dimensions        String? // Kích thước lọt lòng thùng xe
+  notes             String? // Ghi chú
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  temperatures VehicleTemperature[]
+
+  @@index([licensePlate])
+  @@index([brandName])
+  @@map("vehicles")
+}

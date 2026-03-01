@@ -17,9 +17,10 @@ const resetPasswordSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await authMiddleware(request);
 
     if (!user) {
@@ -48,7 +49,7 @@ export async function POST(
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingUser) {
@@ -63,7 +64,7 @@ export async function POST(
 
     // Update password
     await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: { password: hashedPassword },
     });
 

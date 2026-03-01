@@ -22,9 +22,10 @@ const updateUserSchema = z.object({
 // GET - Get user by ID (Admin only)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await authMiddleware(request);
 
     if (!user) {
@@ -39,7 +40,7 @@ export async function GET(
     }
 
     const foundUser = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         name: true,
@@ -69,9 +70,10 @@ export async function GET(
 // PATCH - Update user (Admin only)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await authMiddleware(request);
 
     if (!user) {
@@ -100,7 +102,7 @@ export async function PATCH(
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingUser) {
@@ -126,7 +128,7 @@ export async function PATCH(
 
     // Update user
     const updatedUser = await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(name && { name }),
         ...(email && { email }),
@@ -154,9 +156,10 @@ export async function PATCH(
 // DELETE - Delete user (Admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await authMiddleware(request);
 
     if (!user) {
@@ -171,7 +174,7 @@ export async function DELETE(
     }
 
     // Prevent self-deletion
-    if (user.id === params.id) {
+    if (user.id === id) {
       return NextResponse.json(
         { error: "Không thể xóa tài khoản của chính mình" },
         { status: 400 },
@@ -180,7 +183,7 @@ export async function DELETE(
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingUser) {
@@ -192,7 +195,7 @@ export async function DELETE(
 
     // Delete user
     await prisma.user.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

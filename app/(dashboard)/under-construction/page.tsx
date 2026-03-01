@@ -1,6 +1,8 @@
 import { Construction } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+export const dynamic = "force-dynamic";
+
 export default function UnderConstructionPage() {
   return (
     <div className="flex items-center justify-center min-h-[60vh]">

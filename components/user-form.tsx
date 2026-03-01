@@ -138,7 +138,9 @@ export function CreateUserDialog({
               disabled={isLoading}
             />
             {errors.username && (
-              <p className="text-sm text-destructive">{errors.username.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.username.message}
+              </p>
             )}
           </div>
 

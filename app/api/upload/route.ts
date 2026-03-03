@@ -118,6 +118,17 @@ export async function POST(request: NextRequest) {
 
     // Create upload log and temperature records in a transaction
     const result = await prisma.$transaction(async (tx) => {
+      // Delete all existing records for this vehicle plate before inserting new data
+      const deleteResult = await tx.vehicleTemperature.deleteMany({
+        where: {
+          vehiclePlate: vehiclePlate,
+        },
+      });
+
+      console.log(
+        `Deleted ${deleteResult.count} existing records for vehicle ${vehiclePlate}`,
+      );
+
       // Create upload log
       const uploadLog = await tx.uploadLog.create({
         data: {
@@ -147,13 +158,14 @@ export async function POST(request: NextRequest) {
         })),
       });
 
-      return uploadLog;
+      return { uploadLog, deletedCount: deleteResult.count };
     });
 
     return NextResponse.json({
       success: true,
-      uploadLogId: result.id,
+      uploadLogId: result.uploadLog?.id,
       recordsCount: records.length,
+      deletedCount: result.deletedCount,
       fileName: file.name,
       vehiclePlate,
       warnings: parseResult.errors.length > 0 ? parseResult.errors : undefined,

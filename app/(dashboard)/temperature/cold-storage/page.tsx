@@ -128,6 +128,7 @@ export default function ColdStoragePage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Fetch current user role
   useEffect(() => {
@@ -263,9 +264,41 @@ export default function ColdStoragePage() {
     }
   };
 
-  const handleExportExcel = () => {
-    if (tableData.length === 0) {
+  // Fetch all records (no pagination) for export
+  const fetchAllForExport = useCallback(async (): Promise<TableRecord[]> => {
+    if (!selectedVehicle) return [];
+    const params = new URLSearchParams({
+      vehiclePlate: selectedVehicle,
+      fromDate: new Date(fromDate).toISOString(),
+      toDate: new Date(toDate).toISOString(),
+      page: "1",
+      limit: "100000",
+    });
+    const response = await fetch(`/api/temperature?${params}`);
+    const data = await response.json();
+    if (response.ok) return data.records || [];
+    return [];
+  }, [selectedVehicle, fromDate, toDate]);
+
+  const handleExportExcel = async () => {
+    if (!selectedVehicle) {
+      toast.error("Vui lòng chọn xe");
+      return;
+    }
+
+    setIsExporting(true);
+    let exportData: TableRecord[] = [];
+    try {
+      exportData = await fetchAllForExport();
+    } catch {
+      toast.error("Không thể tải dữ liệu để xuất");
+      setIsExporting(false);
+      return;
+    }
+
+    if (exportData.length === 0) {
       toast.error("Không có dữ liệu để xuất");
+      setIsExporting(false);
       return;
     }
 
@@ -339,7 +372,7 @@ export default function ColdStoragePage() {
 
       // Row 3+: Data rows (order: freezer first, then cooler - matching template)
       // Format: M/d/yyyy h:mm:ss a (e.g., 12/2/2025 10:03:45 AM)
-      tableData.forEach((row) => {
+      exportData.forEach((row) => {
         wsData.push([
           format(new Date(row.startTime), "M/d/yyyy h:mm:ss a"),
           format(new Date(row.endTime), "M/d/yyyy h:mm:ss a"),
@@ -382,7 +415,7 @@ export default function ColdStoragePage() {
       });
 
       // Apply style to data cells with borders (including empty cells)
-      for (let row = 4; row <= tableData.length + 3; row++) {
+      for (let row = 4; row <= exportData.length + 3; row++) {
         const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
         cols.forEach((col) => {
           const cellRef = `${col}${row}`;
@@ -429,16 +462,34 @@ export default function ColdStoragePage() {
       // Export file
       XLSX.writeFile(wb, filename);
 
-      toast.success("Xuất Excel thành công!");
+      toast.success(`Xuất Excel thành công! (${exportData.length} bản ghi)`);
     } catch (error) {
       console.error("Export error:", error);
       toast.error("Có lỗi khi xuất Excel");
+    } finally {
+      setIsExporting(false);
     }
   };
 
   const handleExportPDF = async () => {
-    if (tableData.length === 0) {
+    if (!selectedVehicle) {
+      toast.error("Vui lòng chọn xe");
+      return;
+    }
+
+    setIsExporting(true);
+    let exportData: TableRecord[] = [];
+    try {
+      exportData = await fetchAllForExport();
+    } catch {
+      toast.error("Không thể tải dữ liệu để xuất");
+      setIsExporting(false);
+      return;
+    }
+
+    if (exportData.length === 0) {
       toast.error("Không có dữ liệu để xuất");
+      setIsExporting(false);
       return;
     }
 
@@ -513,7 +564,7 @@ export default function ColdStoragePage() {
         ],
       ];
 
-      const data = tableData.map((row) => [
+      const data = exportData.map((row) => [
         format(new Date(row.startTime), "M/d/yyyy h:mm:ss a"),
         format(new Date(row.endTime), "M/d/yyyy h:mm:ss a"),
         formatDuration(row.duration),
@@ -587,10 +638,12 @@ export default function ColdStoragePage() {
       const filename = `${selectedVehicle} ${fileDatePdf}.pdf`;
       doc.save(filename);
 
-      toast.success("Xuất PDF thành công!");
+      toast.success(`Xuất PDF thành công! (${exportData.length} bản ghi)`);
     } catch (error) {
       console.error("Export PDF error:", error);
       toast.error("Có lỗi khi xuất PDF");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -757,18 +810,28 @@ export default function ColdStoragePage() {
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <Download className="h-4 w-4" />
+                  <Button variant="outline" disabled={isExporting}>
+                    {isExporting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleExportExcel}>
+                  <DropdownMenuItem
+                    onClick={handleExportExcel}
+                    disabled={isExporting}
+                  >
                     <FileSpreadsheet className="h-4 w-4 mr-2" />
-                    Xuất Excel
+                    Xuất Excel (toàn bộ)
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExportPDF}>
+                  <DropdownMenuItem
+                    onClick={handleExportPDF}
+                    disabled={isExporting}
+                  >
                     <FileText className="h-4 w-4 mr-2" />
-                    Xuất PDF
+                    Xuất PDF (toàn bộ)
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

@@ -52,22 +52,27 @@ export interface ParsedTemperatureRecord {
 /**
  * Convert Excel serial date to JavaScript Date
  * Excel dates are stored as days since December 30, 1899
+ * Returns date with local time values matching Excel data (no timezone conversion)
  */
 export function excelDateToJSDate(serial: number): Date {
   // Excel epoch is December 30, 1899
-  const utcDays = Math.floor(serial - 25569);
-  const utcValue = utcDays * 86400;
-  const dateInfo = new Date(utcValue * 1000);
+  // Calculate the date portion
+  const days = Math.floor(serial);
 
   // Handle fractional days (time)
-  const fractionalDay = serial - Math.floor(serial);
+  const fractionalDay = serial - days;
   const totalSeconds = Math.round(fractionalDay * 86400);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
-  dateInfo.setUTCHours(hours, minutes, seconds);
-  return dateInfo;
+  // Create date from Excel epoch (Dec 30, 1899) + days
+  // Use local time to avoid timezone offset
+  const baseDate = new Date(1899, 11, 30); // Dec 30, 1899 in local time
+  baseDate.setDate(baseDate.getDate() + days);
+  baseDate.setHours(hours, minutes, seconds, 0);
+
+  return baseDate;
 }
 
 /**

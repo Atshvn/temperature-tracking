@@ -372,9 +372,9 @@ export default function TemperatureUploadPage() {
                       </p>
                       <p className="text-sm text-muted-foreground">
                         Đã lưu {result?.recordsCount} bản ghi cho xe{" "}
-                        <Badge variant="secondary">
+                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">
                           {result?.vehiclePlate}
-                        </Badge>
+                        </span>
                       </p>
                     </div>
                   </div>

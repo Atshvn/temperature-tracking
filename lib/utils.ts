@@ -43,6 +43,59 @@ export function formatDateTime(date: Date | string): string {
 }
 
 /**
+ * Format a UTC date/ISO string as Vietnam time (UTC+7), regardless of
+ * the environment's local timezone. Use this whenever displaying timestamps
+ * that were stored as UTC in the database.
+ *
+ * @param date - UTC Date object or ISO string
+ * @param withSeconds - include seconds in time portion (default: true)
+ * @returns string like "00:10:04 01/02/2026"
+ */
+export function formatVNDateTime(
+  date: Date | string,
+  withSeconds = true,
+): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const fmt = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    ...(withSeconds ? { second: "2-digit" } : {}),
+    hour12: false,
+  });
+  const parts = fmt.formatToParts(d);
+  const get = (type: string) =>
+    parts.find((p) => p.type === type)?.value ?? "00";
+  const time = withSeconds
+    ? `${get("hour")}:${get("minute")}:${get("second")}`
+    : `${get("hour")}:${get("minute")}`;
+  return `${time} ${get("day")}/${get("month")}/${get("year")}`;
+}
+
+/**
+ * Format a UTC date as Vietnam time for export (M/d/yyyy h:mm:ss a)
+ * Matches the format used in the original Excel template.
+ */
+export function formatVNDateTimeExport(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  }).formatToParts(d);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  return `${get("month")}/${get("day")}/${get("year")} ${get("hour")}:${get("minute")}:${get("second")} ${get("dayPeriod")}`;
+}
+
+/**
  * Format temperature with unit
  */
 export function formatTemperature(temp: number): string {

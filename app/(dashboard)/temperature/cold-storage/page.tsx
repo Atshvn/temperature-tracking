@@ -174,15 +174,15 @@ export default function ColdStoragePage() {
     try {
       const params = new URLSearchParams({
         vehiclePlate: selectedVehicle,
-        fromDate: new Date(fromDate).toISOString(),
-        toDate: new Date(toDate).toISOString(),
+        fromDate: fromDate,
+        toDate: toDate,
         page: pagination.page.toString(),
         limit: pagination.limit.toString(),
       });
 
       const response = await fetch(`/api/temperature?${params}`);
       const data = await response.json();
-
+      console.log(data.records);
       if (response.ok) {
         setChartData(data.chartData || []);
         setTableData(data.records || []);
@@ -269,8 +269,8 @@ export default function ColdStoragePage() {
     if (!selectedVehicle) return [];
     const params = new URLSearchParams({
       vehiclePlate: selectedVehicle,
-      fromDate: new Date(fromDate).toISOString(),
-      toDate: new Date(toDate).toISOString(),
+      fromDate: fromDate,
+      toDate: toDate,
       page: "1",
       limit: "100000",
     });

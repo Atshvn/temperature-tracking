@@ -52,11 +52,12 @@ export interface ParsedTemperatureRecord {
 /**
  * Convert Excel serial date to JavaScript Date
  * Excel dates are stored as days since December 30, 1899
- * Returns date with local time values matching Excel data (no timezone conversion)
+ * Excel times in this app are in Vietnam time (UTC+7).
+ * We convert to UTC so the database stores the correct absolute time,
+ * and the frontend (UTC+7) will display the original Vietnam time correctly.
  */
 export function excelDateToJSDate(serial: number): Date {
   // Excel epoch is December 30, 1899
-  // Calculate the date portion
   const days = Math.floor(serial);
 
   // Handle fractional days (time)
@@ -66,13 +67,15 @@ export function excelDateToJSDate(serial: number): Date {
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
-  // Create date from Excel epoch (Dec 30, 1899) + days
-  // Use local time to avoid timezone offset
-  const baseDate = new Date(1899, 11, 30); // Dec 30, 1899 in local time
-  baseDate.setDate(baseDate.getDate() + days);
-  baseDate.setHours(hours, minutes, seconds, 0);
+  // Use UTC arithmetic to avoid server timezone interference.
+  // The Excel file records Vietnam local time (UTC+7), so subtract 7 hours
+  // to get the correct UTC timestamp for storage.
+  const excelEpochUTC = Date.UTC(1899, 11, 30); // Dec 30, 1899 00:00 UTC
+  const dayMs = days * 24 * 60 * 60 * 1000;
+  const timeMs = (hours * 3600 + minutes * 60 + seconds) * 1000;
+  const vietnamOffsetMs = 7 * 60 * 60 * 1000; // UTC+7
 
-  return baseDate;
+  return new Date(excelEpochUTC + dayMs + timeMs - vietnamOffsetMs);
 }
 
 /**

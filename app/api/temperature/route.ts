@@ -62,12 +62,16 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Transform data for chart and table
+    // Note: DB stores Vietnam local time (UTC+7) directly.
+    // Strip the trailing "Z" so clients parse as local time, not UTC.
+    const toLocalISO = (d: Date) => d.toISOString().slice(0, -1);
+
     const chartData = records.map((r) => ({
-      time: r.startTime.toISOString(),
+      time: toLocalISO(r.startTime),
       timeLabel: new Intl.DateTimeFormat("vi-VN", {
         hour: "2-digit",
         minute: "2-digit",
-      }).format(r.startTime),
+      }).format(new Date(toLocalISO(r.startTime))),
       coolerTemp: r.coolerTemp,
       freezerTemp: r.freezerTemp,
       coolerHumidity: r.coolerHumidity,
@@ -76,8 +80,8 @@ export async function GET(request: NextRequest) {
 
     const tableData = records.map((r) => ({
       id: r.id,
-      startTime: r.startTime.toISOString(),
-      endTime: r.endTime.toISOString(),
+      startTime: toLocalISO(r.startTime),
+      endTime: toLocalISO(r.endTime),
       duration: r.duration,
       acStatus: r.acStatus,
       coolerTemp: r.coolerTemp,

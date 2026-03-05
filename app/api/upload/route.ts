@@ -117,30 +117,31 @@ export async function POST(request: NextRequest) {
     const records = convertToDbRecords(parseResult.data, vehiclePlate);
 
     // Create upload log and temperature records in a transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // Delete all existing records for this vehicle plate before inserting new data
-      const deleteResult = await tx.vehicleTemperature.deleteMany({
-        where: {
-          vehiclePlate: vehiclePlate,
-        },
-      });
+    const result = await prisma.$transaction(
+      async (tx) => {
+        // Delete all existing records for this vehicle plate before inserting new data
+        const deleteResult = await tx.vehicleTemperature.deleteMany({
+          where: {
+            vehiclePlate: vehiclePlate,
+          },
+        });
 
-      console.log(
-        `Deleted ${deleteResult.count} existing records for vehicle ${vehiclePlate}`,
-      );
+        console.log(
+          `Deleted ${deleteResult.count} existing records for vehicle ${vehiclePlate}`,
+        );
 
-      // Create upload log
-      const uploadLog = await tx.uploadLog.create({
-        data: {
-          fileName: file.name,
-          recordsCount: records.length,
-          uploadedById: user.id,
-        },
-      });
+        // Create upload log
+        const uploadLog = await tx.uploadLog.create({
+          data: {
+            fileName: file.name,
+            recordsCount: records.length,
+            uploadedById: user.id,
+          },
+        });
 
-      // Create temperature records
-      await tx.vehicleTemperature.createMany({
-        data: records.map((record) => ({
+        // Batch insert to avoid hitting DB limits with large datasets
+        const BATCH_SIZE = 500;
+        const rows = records.map((record) => ({
           vehiclePlate: record.vehiclePlate,
           startTime: record.startTime,
           endTime: record.endTime,
@@ -155,11 +156,18 @@ export async function POST(request: NextRequest) {
           status: record.status,
           vehicleId: vehicleId || null,
           uploadLogId: uploadLog.id,
-        })),
-      });
+        }));
 
-      return { uploadLog, deletedCount: deleteResult.count };
-    });
+        for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+          await tx.vehicleTemperature.createMany({
+            data: rows.slice(i, i + BATCH_SIZE),
+          });
+        }
+
+        return { uploadLog, deletedCount: deleteResult.count };
+      },
+      { timeout: 60000 }, // 60 seconds for large files
+    );
 
     return NextResponse.json({
       success: true,

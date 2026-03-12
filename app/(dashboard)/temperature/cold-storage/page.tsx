@@ -374,8 +374,8 @@ export default function ColdStoragePage() {
       // Format: M/d/yyyy h:mm:ss a (e.g., 12/2/2025 10:03:45 AM)
       exportData.forEach((row) => {
         wsData.push([
-          format(new Date(row.startTime), "M/d/yyyy h:mm:ss a"),
-          format(new Date(row.endTime), "M/d/yyyy h:mm:ss a"),
+          format(toVnTime(row.startTime), "M/d/yyyy h:mm:ss a"),
+          format(toVnTime(row.endTime), "M/d/yyyy h:mm:ss a"),
           formatDuration(row.duration),
           row.acStatus,
           row.freezerTemp,
@@ -565,8 +565,8 @@ export default function ColdStoragePage() {
       ];
 
       const data = exportData.map((row) => [
-        format(new Date(row.startTime), "M/d/yyyy h:mm:ss a"),
-        format(new Date(row.endTime), "M/d/yyyy h:mm:ss a"),
+        format(toVnTime(row.startTime), "M/d/yyyy h:mm:ss a"),
+        format(toVnTime(row.endTime), "M/d/yyyy h:mm:ss a"),
         formatDuration(row.duration),
         row.acStatus,
         row.freezerTemp?.toString() || "",
@@ -646,6 +646,10 @@ export default function ColdStoragePage() {
       setIsExporting(false);
     }
   };
+
+  // Convert UTC ISO string to Vietnam time (UTC+7) Date for display
+  const toVnTime = (iso: string) =>
+    new Date(new Date(iso).getTime() + 7 * 60 * 60 * 1000);
 
   // Format duration in minutes to HH:mm:ss
   const formatDuration = (minutes: number) => {
@@ -1117,12 +1121,12 @@ export default function ColdStoragePage() {
                         )}
                         <TableCell className="font-mono text-sm whitespace-nowrap">
                           {format(
-                            new Date(row.startTime),
+                            toVnTime(row.startTime),
                             "HH:mm:ss dd/MM/yyyy",
                           )}
                         </TableCell>
                         <TableCell className="font-mono text-sm whitespace-nowrap">
-                          {format(new Date(row.endTime), "HH:mm:ss dd/MM/yyyy")}
+                          {format(toVnTime(row.endTime), "HH:mm:ss dd/MM/yyyy")}
                         </TableCell>
                         <TableCell className="font-mono text-sm">
                           {formatDuration(row.duration)}

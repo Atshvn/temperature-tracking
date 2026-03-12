@@ -215,8 +215,8 @@ async function main() {
 
   console.log("\n🎉 Database seeded successfully!");
   console.log("\n📋 Default accounts:");
-  console.log("   Admin: admin3s / admin3s@123");
-  console.log("   User:  3scooltrans / 3scooltrans@12345");
+  console.log("   Admin: admin@example.com / admin123");
+  console.log("   User:  user@example.com / user123");
   console.log("\n🚛 Sample vehicles:");
   createdVehicles.forEach((v) => {
     console.log(`   ${v.licensePlate} - ${v.brandName} - ${v.vehicleType}`);
